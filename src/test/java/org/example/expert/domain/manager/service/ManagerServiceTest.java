@@ -12,7 +12,6 @@ import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.manager.dto.request.ManagerSaveRequest;
 import org.example.expert.domain.manager.dto.response.ManagerResponse;
-import org.example.expert.domain.manager.dto.response.ManagerSaveResponse;
 import org.example.expert.domain.manager.entity.Manager;
 import org.example.expert.domain.manager.repository.ManagerRepository;
 import org.example.expert.domain.todo.entity.Todo;
@@ -115,7 +114,7 @@ class ManagerServiceTest {
         given(managerRepository.save(any(Manager.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ManagerSaveResponse response = managerService.saveManager(authUser, todoId, managerSaveRequest);
+        ManagerResponse response = managerService.saveManager(authUser, todoId, managerSaveRequest);
 
         // then
         assertNotNull(response);

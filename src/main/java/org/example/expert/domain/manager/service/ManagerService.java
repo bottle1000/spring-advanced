@@ -7,7 +7,6 @@ import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.manager.dto.request.ManagerSaveRequest;
 import org.example.expert.domain.manager.dto.response.ManagerResponse;
-import org.example.expert.domain.manager.dto.response.ManagerSaveResponse;
 import org.example.expert.domain.manager.entity.Manager;
 import org.example.expert.domain.manager.repository.ManagerRepository;
 import org.example.expert.domain.todo.entity.Todo;
@@ -29,7 +28,7 @@ public class ManagerService {
     private final TodoRepository todoRepository;
 
     @Transactional
-    public ManagerSaveResponse saveManager(AuthUser authUser, long todoId, ManagerSaveRequest managerSaveRequest) {
+    public ManagerResponse saveManager(AuthUser authUser, long todoId, ManagerSaveRequest managerSaveRequest) {
         // 일정을 만든 유저
         User user = User.fromAuthUser(authUser);
         Todo todo = todoRepository.findById(todoId)
@@ -49,10 +48,7 @@ public class ManagerService {
         Manager newManagerUser = new Manager(managerUser, todo);
         Manager savedManagerUser = managerRepository.save(newManagerUser);
 
-        return new ManagerSaveResponse(
-                savedManagerUser.getId(),
-                new UserResponse(managerUser.getId(), managerUser.getEmail())
-        );
+        return convertMangerResponse(savedManagerUser, managerUser);
     }
 
     public List<ManagerResponse> getManagers(long todoId) {
@@ -64,10 +60,7 @@ public class ManagerService {
         List<ManagerResponse> dtoList = new ArrayList<>();
         for (Manager manager : managerList) {
             User user = manager.getUser();
-            dtoList.add(new ManagerResponse(
-                    manager.getId(),
-                    new UserResponse(user.getId(), user.getEmail())
-            ));
+            dtoList.add(convertMangerResponse(manager, user));
         }
         return dtoList;
     }
@@ -93,4 +86,10 @@ public class ManagerService {
 
         managerRepository.delete(manager);
     }
+
+    private ManagerResponse convertMangerResponse(Manager savedManagerUser, User user) {
+        return ManagerResponse.of(savedManagerUser.getId(),
+                new UserResponse(user.getId(), user.getEmail()));
+    }
+
 }
