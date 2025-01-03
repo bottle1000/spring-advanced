@@ -57,6 +57,11 @@ class ManagerServiceTest {
         long managerUserId = 2L;
 
         Todo todo = new Todo();
+        /**
+         * todo : 변경할 필드를 가진 객체
+         * user : 변경하려는 필드의 이름.
+         * null : 필드에 설정할 값. 따라서 todo 객체의 user 필드의 값을 Null로 설정
+         */
         ReflectionTestUtils.setField(todo, "user", null);
 
         ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(managerUserId);
