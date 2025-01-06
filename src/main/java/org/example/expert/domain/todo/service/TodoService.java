@@ -68,14 +68,6 @@ public class TodoService {
     }
 
     private TodoResponse convertTodoResponse(Todo todo) {
-        return TodoResponse.of(
-                todo.getId(),
-                todo.getTitle(),
-                todo.getContents(),
-                todo.getWeather(),
-                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail()),
-                todo.getCreatedAt(),
-                todo.getModifiedAt()
-        );
+        return TodoResponse.of(todo);
     }
 }
