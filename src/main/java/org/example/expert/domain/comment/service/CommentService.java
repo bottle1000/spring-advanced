@@ -54,8 +54,6 @@ public class CommentService {
     }
 
     private static CommentResponse convertCommentResponse(Comment savedComment, User user) {
-        return CommentResponse.of(savedComment.getId(),
-                savedComment.getContents(),
-                new UserResponse(user.getId(), user.getEmail()));
+        return CommentResponse.of(savedComment, user);
     }
 }
