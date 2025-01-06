@@ -91,8 +91,7 @@ public class ManagerService {
     }
 
     private ManagerResponse convertMangerResponse(Manager savedManagerUser, User user) {
-        return ManagerResponse.of(savedManagerUser.getId(),
-                new UserResponse(user.getId(), user.getEmail()));
+        return ManagerResponse.of(savedManagerUser, user);
     }
 
 }
