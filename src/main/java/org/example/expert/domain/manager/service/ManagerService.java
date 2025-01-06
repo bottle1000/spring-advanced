@@ -8,11 +8,16 @@ import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.manager.dto.request.ManagerSaveRequest;
 import org.example.expert.domain.manager.dto.response.ManagerResponse;
 import org.example.expert.domain.manager.entity.Manager;
+import org.example.expert.domain.manager.exception.InvalidManagerAssignmentException;
+import org.example.expert.domain.manager.exception.SelfAssignmentException;
+import org.example.expert.domain.manager.exception.UnauthorizedTodoAccessException;
 import org.example.expert.domain.manager.repository.ManagerRepository;
 import org.example.expert.domain.todo.entity.Todo;
+import org.example.expert.domain.todo.exception.NotFoundTodoException;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.dto.response.UserResponse;
 import org.example.expert.domain.user.entity.User;
+import org.example.expert.domain.user.exception.NotFoundUserException;
 import org.example.expert.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,20 +37,20 @@ public class ManagerService {
         // 일정을 만든 유저
         User user = User.fromAuthUser(authUser);
         Todo todo = todoRepository.findById(todoId)
-                .orElseThrow(() -> new InvalidRequestException("Todo not found"));
+                .orElseThrow(() -> new NotFoundUserException("Todo not found"));
 
         /**
          * 이미 todo.getUser 자체가 null인데 null.getId()를 호출해서 NPE가 발생함.
          */
         if (!ObjectUtils.nullSafeEquals(user.getId(), todo.getUser())){
-            throw new InvalidRequestException("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.");
+            throw new UnauthorizedTodoAccessException("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.");
         }
 
         User managerUser = userRepository.findById(managerSaveRequest.getManagerUserId())
                 .orElseThrow(() -> new InvalidRequestException("등록하려고 하는 담당자 유저가 존재하지 않습니다."));
 
         if (ObjectUtils.nullSafeEquals(user.getId(), managerUser.getId())) {
-            throw new InvalidRequestException("일정 작성자는 본인을 담당자로 등록할 수 없습니다.");
+            throw new SelfAssignmentException("일정 작성자는 본인을 담당자로 등록할 수 없습니다.");
         }
 
         Manager newManagerUser = new Manager(managerUser, todo);
@@ -56,7 +61,7 @@ public class ManagerService {
 
     public List<ManagerResponse> getManagers(long todoId) {
         Todo todo = todoRepository.findById(todoId)
-                .orElseThrow(() -> new InvalidRequestException("Todo not found"));
+                .orElseThrow(() -> new NotFoundTodoException("Todo not found"));
 
         List<Manager> managerList = managerRepository.findAllByTodoId(todo.getId());
 
@@ -71,20 +76,20 @@ public class ManagerService {
     @Transactional
     public void deleteManager(long userId, long todoId, long managerId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidRequestException("User not found"));
+                .orElseThrow(() -> new NotFoundUserException("User not found"));
 
         Todo todo = todoRepository.findById(todoId)
-                .orElseThrow(() -> new InvalidRequestException("Todo not found"));
+                .orElseThrow(() -> new NotFoundTodoException("Todo not found"));
 
         if (todo.getUser() == null || !ObjectUtils.nullSafeEquals(user.getId(), todo.getUser().getId())) {
-            throw new InvalidRequestException("해당 일정을 만든 유저가 유효하지 않습니다.");
+            throw new UnauthorizedTodoAccessException("해당 일정을 만든 유저가 유효하지 않습니다.");
         }
 
         Manager manager = managerRepository.findById(managerId)
-                .orElseThrow(() -> new InvalidRequestException("Manager not found"));
+                .orElseThrow(() -> new NotFoundUserException("Manager not found"));
 
         if (!ObjectUtils.nullSafeEquals(todo.getId(), manager.getTodo().getId())) {
-            throw new InvalidRequestException("해당 일정에 등록된 담당자가 아닙니다.");
+            throw new InvalidManagerAssignmentException("해당 일정에 등록된 담당자가 아닙니다.");
         }
 
         managerRepository.delete(manager);
